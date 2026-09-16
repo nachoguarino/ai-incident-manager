@@ -1,6 +1,6 @@
-from models import Incident, IncidentAnalysis
+from src.models import Incident, IncidentAnalysis
 
-from rules import (
+from src.rules import (
     database_rule,
     authentication_rule,
     timeout_rule, 
@@ -21,6 +21,18 @@ SEVERITY_PRIORITY = {
     "critical": 4
 }
 
+
+def combine_actions(matches):
+    actions = []
+
+    for match in matches:
+        for action in match.recommended_actions:
+            if action not in actions:
+                actions.append(action)
+
+    return actions
+
+
 def analyze_incident(incident: Incident) -> IncidentAnalysis:
 
     matches = []
@@ -33,9 +45,9 @@ def analyze_incident(incident: Incident) -> IncidentAnalysis:
 
     if not matches:
         return IncidentAnalysis(
-            category=["unknown"],
+            categories=["unknown"],
             severity="low",
-            probable_cause=["Unable to determine cause"],
+            probable_causes=["Unable to determine cause"],
             recommended_actions=[
                 "Review application logs",
                 "Investigate incident manually",
@@ -73,12 +85,3 @@ def analyze_incident(incident: Incident) -> IncidentAnalysis:
     )
 
 
-def combine_actions(matches):
-    actions = []
-
-    for match in matches:
-        for action in match.recommended_actions:
-            if action not in actions:
-                actions.append(action)
-
-    return actions
