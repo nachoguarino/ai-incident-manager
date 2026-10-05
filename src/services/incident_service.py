@@ -1,10 +1,10 @@
 from src.analyzer import analyze_incident
-from src.models import Incident, IncidentAnalysis
+from src.models import Incident
 from src.schemas.incident import IncidentRequest
 from src.repositories.incident_repository import save_incident
 
 
-def process_incident(request: IncidentRequest) -> IncidentAnalysis:
+def process_incident(request: IncidentRequest) -> dict:
     incident = Incident(
         service=request.service,
         environment=request.environment,
@@ -31,6 +31,9 @@ def process_incident(request: IncidentRequest) -> IncidentAnalysis:
         },
     }
 
-    save_incident(incident_data)
+    incident_id = save_incident(incident_data)
 
-    return analysis
+    return {
+        "incident_id": incident_id,
+        "analysis": analysis,
+    }

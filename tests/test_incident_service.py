@@ -15,6 +15,6 @@ def test_process_incident():
 
     result = process_incident(request)
 
-    assert "database" in result.categories
-    assert "network" in result.categories
-    assert result.severity == "high"
+    assert "database" in result["analysis"].categories
+    assert "network" in result["analysis"].categories
+    assert result["analysis"].severity == "high"
