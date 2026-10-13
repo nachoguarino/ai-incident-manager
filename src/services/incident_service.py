@@ -1,7 +1,7 @@
 from src.analyzer import analyze_incident
 from src.models import Incident
 from src.schemas.incident import IncidentRequest
-from src.repositories.incident_repository import save_incident
+from src.repositories.incident_repository import (save_incident, get_incident_by_id)
 
 
 def process_incident(request: IncidentRequest) -> dict:
@@ -37,3 +37,12 @@ def process_incident(request: IncidentRequest) -> dict:
         "incident_id": incident_id,
         "analysis": analysis,
     }
+
+def get_incident(incident_id: str):
+    incident = get_incident_by_id(incident_id)
+    if incident is None:
+        return None
+
+    incident["_id"] = str(incident["_id"])  # Convert ObjectId to string for JSON serialization
+    
+    return incident
