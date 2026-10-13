@@ -1,7 +1,6 @@
 fastapi
 uvicorn
-sqlalchemy
-psycopg
-openai
+pymongo
+python-dotenv
 pytest
-dotenv
+httpx

@@ -14,3 +14,13 @@ def get_incident_by_id(incident_id: str):
         {"_id": ObjectId(incident_id)}
     )
     return incident
+
+def get_incidents(limit: int = 10, skip: int = 0) -> list[dict]:
+    cursor = (
+        incidents_collection.find()
+        .sort("_id", -1)
+        .skip(skip)
+        .limit(limit)
+    )
+
+    return list(cursor)

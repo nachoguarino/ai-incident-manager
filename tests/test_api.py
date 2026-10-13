@@ -95,3 +95,36 @@ def test_post_incident(monkeypatch, sample_analysis):
     assert response.status_code == 200
     assert response.json()["incident_id"] == expected_response["incident_id"]
     assert response.json()["analysis"]["severity"] == "high"
+
+
+def test_list_incidents(monkeypatch, sample_incident):
+    def fake_list_incidents(limit=10, skip=0):
+        assert limit == 2
+        assert skip == 0
+        return [sample_incident]
+
+    monkeypatch.setattr(
+        api,
+        "list_incidents",
+        fake_list_incidents
+    )
+
+    response = client.get("/incidents?limit=2&skip=0")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["_id"] == "507f1f77bcf86cd799439011"
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"limit": 0},
+        {"skip": -1},
+    ],
+)
+
+def test_list_incidents_rejects_invalid_pagination(params):
+    response = client.get("/incidents", params=params)
+
+    assert response.status_code == 422

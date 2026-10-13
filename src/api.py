@@ -1,7 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
+import src
 from src.schemas.incident import IncidentRequest, IncidentResponse
-from src.services.incident_service import get_incident, process_incident
+from src.services.incident_service import (get_incident, process_incident, list_incidents)
 from bson.errors import InvalidId
+import logging 
+from src.logging_config import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(title="AI Incident Manager")
@@ -12,7 +18,23 @@ def root():
 
 @app.post("/incidents", response_model=IncidentResponse)
 def analyze_incident_endpoint(request: IncidentRequest):
-    return process_incident(request)
+    logger.info("Incident analysis requested")
+
+    try:
+        return process_incident(request)
+    except Exception:
+        logger.exception("Failed to process incident")
+    raise
+
+
+@app.get("/incidents")
+def list_incidents_endpoint(
+    limit: int = Query(default = 10, ge=1, le=100),
+    skip: int = Query(default = 0, ge=0)
+):
+    logger.info("Listing incidents")
+    return list_incidents(limit=limit, skip=skip)
+
 
 @app.get("/incidents/{incident_id}")
 def get_incident_endpoint(incident_id: str):
