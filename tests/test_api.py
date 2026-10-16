@@ -128,3 +128,30 @@ def test_list_incidents_rejects_invalid_pagination(params):
     response = client.get("/incidents", params=params)
 
     assert response.status_code == 422
+
+def test_post_incident_returns_500_on_unexpected_error(monkeypatch, caplog):
+    import logging
+
+    def simulate_failure(request):
+        raise RuntimeError("Unexpected internal error")
+
+    monkeypatch.setattr(api, "process_incident", simulate_failure)
+    payload = {
+        "service": "payments-api",
+        "environment": "production",
+        "level": "ERROR",
+        "message": "Database connection failed",
+        "timestamp": "2026-09-13T12:30:00",
+    }
+
+    #Desactiva el relanzamiento de excepciones dle servidor
+    #para poder inspeccionar la respuesta HTTP 500.
+    test_client = TestClient(api.app, raise_server_exceptions=False)
+
+    with caplog.at_level(logging.ERROR, logger="src.api"):
+        response = test_client.post("/incidents", json=payload)
+
+    assert response.status_code == 500
+    assert response.text == "Internal Server Error"
+    assert "Failed to process incident" in caplog.text
+    assert "Unexpected internal error" in caplog.text

@@ -5,6 +5,10 @@ from src.services.incident_service import (get_incident, process_incident, list_
 from bson.errors import InvalidId
 import logging 
 from src.logging_config import configure_logging
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -12,9 +16,12 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Incident Manager")
 
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
 @app.get("/")
 def root():
-    return {"message": "Welcome to the AI Incident Manager API!"}
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 @app.post("/incidents", response_model=IncidentResponse)
 def analyze_incident_endpoint(request: IncidentRequest):

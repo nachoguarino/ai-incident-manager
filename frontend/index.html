@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0c0e12">
+    <title>Incident Manager</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="/">
+                <span class="brand-icon">I</span>
+                <span>Incident<span class="brand-muted">Manager</span></span>
+            </a>
+
+            <p class="nav-label">WORKSPACE</p>
+
+            <nav>
+                <a class="nav-item active" href="#dashboard">
+                    <span>▦</span> Overview
+                </a>
+                <a class="nav-item" href="#incidents">
+                    <span>◷</span> Incidents
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <span class="status-dot"></span>
+                API connection
+                <span class="status-text" id="api-status">Checking...</span>
+            </div>
+        </aside>
+
+        <main class="main-content" id="dashboard">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">OPERATIONS / OVERVIEW</p>
+                    <h1>Incident dashboard</h1>
+                    <p class="subtitle">
+                        Monitor, analyze and manage application incidents.
+                    </p>
+                </div>
+
+                <button class="primary-button" id="open-form-button">
+                    <span>＋</span> Report incident
+                </button>
+            </header>
+
+            <section class="metrics-grid" aria-label="Incident summary">
+                <article class="metric-card">
+                    <p>Total incidents</p>
+                    <strong id="total-incidents">—</strong>
+                    <span class="metric-caption">Stored incidents</span>
+                </article>
+
+                <article class="metric-card">
+                    <p>Critical</p>
+                    <strong class="severity-critical" id="critical-count">—</strong>
+                    <span class="metric-caption">Critical severity</span>
+                </article>
+
+                <article class="metric-card">
+                    <p>High severity</p>
+                    <strong class="severity-high" id="high-count">—</strong>
+                    <span class="metric-caption">High priority</span>
+                </article>
+
+                <article class="metric-card">
+                    <p>API status</p>
+                    <strong class="status-online" id="api-metric">Checking</strong>
+                    <span class="metric-caption">Backend availability</span>
+                </article>
+            </section>
+
+            <section class="panel" id="incidents">
+                <div class="panel-header">
+                    <div>
+                        <h2>Recent incidents</h2>
+                        <p>Latest incidents processed by the system.</p>
+                    </div>
+
+                    <button class="secondary-button" id="refresh-button">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="incident-list" class="incident-list">
+                    <p class="empty-state">Loading incidents...</p>
+                </div>
+            </section>
+
+            <section class="panel form-panel" id="report-section" hidden>
+                <div class="panel-header">
+                    <div>
+                        <h2>Report an incident</h2>
+                        <p>Submit an incident for automated analysis.</p>
+                    </div>
+
+                    <button class="icon-button" id="close-form-button"
+                            aria-label="Close form">✕</button>
+                </div>
+
+                <form id="incident-form">
+                    <div class="form-grid">
+                        <label>
+                            Service
+                            <input name="service" required
+                                   placeholder="e.g. payments-api">
+                        </label>
+
+                        <label>
+                            Environment
+                            <select name="environment" required>
+                                <option value="production">Production</option>
+                                <option value="staging">Staging</option>
+                                <option value="development">Development</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Log level
+                            <select name="level" required>
+                                <option value="ERROR">ERROR</option>
+                                <option value="CRITICAL">CRITICAL</option>
+                                <option value="WARNING">WARNING</option>
+                                <option value="INFO">INFO</option>
+                            </select>
+                        </label>
+
+                        <label class="full-width">
+                            Incident message
+                            <textarea name="message" required rows="4"
+                                      placeholder="Describe the error or paste the relevant log message..."></textarea>
+                        </label>
+                    </div>
+
+                    <p id="form-feedback" class="feedback" role="status"></p>
+
+                    <button class="primary-button" type="submit" id="submit-button">
+                        Analyze incident
+                    </button>
+                </form>
+            </section>
+
+
+            <section id="detail-section" class="incident-modal" hidden>
+                <div class="modal-backdrop" id="modal-backdrop"></div>
+
+                <div
+                    class="modal-content"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="detail-title"
+                >
+                    <div class="modal-header">
+                        <div>
+                            <p class="eyebrow">INCIDENT REPORT</p>
+                            <h2 id="detail-title">Incident details</h2>
+                        </div>
+
+                        <button
+                            type="button"
+                            id="close-detail-button"
+                            class="modal-close"
+                            aria-label="Close incident details"
+                        >
+                            &times;
+                        </button>
+                    </div>
+
+                    <div id="incident-detail">
+                        <p>Select an incident to see its details.</p>
+                    </div>
+                </div>
+            </section>
+
+
+            <footer class="page-footer">
+                AI Incident Manager <span>·</span> Rule-based analysis
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

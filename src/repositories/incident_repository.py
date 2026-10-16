@@ -1,10 +1,18 @@
 from src.database.mongodb import incidents_collection
 from bson import ObjectId
+import logging
+from pymongo.errors import PyMongoError
 
-def save_incident(incident_data: dict):
-    result = incidents_collection.insert_one(incident_data)
+logger = logging.getLogger(__name__)
 
-    return str(result.inserted_id)
+
+def save_incident(incident_data: dict) -> str:
+    try:
+        result = incidents_collection.insert_one(incident_data)
+        return str(result.inserted_id)
+    except PyMongoError:
+        logger.exception("MongoDB error while saving incident")
+        raise
 
 def get_incident_by_id(incident_id: str):
     if not ObjectId.is_valid(incident_id):
