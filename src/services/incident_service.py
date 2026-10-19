@@ -1,5 +1,5 @@
 import logging
-from src.analyzer import analyze_incident
+from src.hybrid_analyzer import analyze_incident_hybrid
 from src.models import Incident
 from src.schemas.incident import IncidentRequest
 from src.repositories.incident_repository import (save_incident, get_incident_by_id, get_incidents as fetch_incidents)
@@ -22,7 +22,7 @@ def process_incident(request: IncidentRequest) -> dict:
         incident.environment,
     )
 
-    analysis = analyze_incident(incident)
+    analysis = analyze_incident_hybrid(incident)
 
 
     incident_data = {

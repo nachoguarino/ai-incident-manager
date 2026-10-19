@@ -1,105 +1,95 @@
 # AI Incident Manager
 
-Backend system for automated software incident analysis.
+A Python backend application that analyzes software incidents using a hybrid approach combining deterministic rules and Large Language Models (LLMs).
 
-## Current features
+AI Incident Manager classifies incidents, estimates severity, identifies probable causes, recommends troubleshooting actions, and stores analysis results in MongoDB Atlas. It provides a REST API built with FastAPI and a web dashboard for submitting and reviewing incidents.
 
-- Incident modeling
-- Rule-based incident classification
-- Multiple rule matching
-- Severity prioritization
-- Probable cause detection
-- Recommended actions
-- Extensible rule engine
+## Features
 
-## Architecture
-
-...
-
-## Roadmap
-
-- [ ] Automated tests
-- [ ] FastAPI API
-- [ ] PostgreSQL persistence
-- [ ] LLM-powered diagnosis
-- [ ] RAG
-- [ ] Async processing
-- [ ] Docker
-- [ ] Observability# AI Incident Manager
-
-A Python backend application for automated software incident analysis, classification, and management.
-
-AI Incident Manager analyzes application incidents using a rule-based engine, identifies probable causes, recommends troubleshooting actions, and stores the results in MongoDB Atlas through a REST API.
-
-## Current Features
-
-- **Incident modeling:** structured representation of software incidents.
-- **Rule-based classification:** categorizes incidents using configurable detection rules.
-- **Multiple rule matching:** identifies multiple relevant rules for a single incident.
-- **Severity prioritization:** determines incident severity based on matched rules.
-- **Probable cause detection:** identifies potential causes based on incident information.
-- **Recommended actions:** generates troubleshooting recommendations from matching rules.
-- **REST API:** exposes incident analysis and retrieval endpoints using FastAPI.
-- **MongoDB persistence:** stores incidents and their analysis results in MongoDB Atlas.
-- **Incident retrieval:** retrieves individual incidents by ID.
-- **Paginated listing:** lists stored incidents with configurable `limit` and `skip` parameters.
+- **Hybrid incident analysis:** combines a rule-based engine with OpenAI-powered analysis.
+- **Rule-based classification:** identifies known incident patterns using configurable detection rules.
+- **Multiple rule matching:** detects multiple relevant patterns in a single incident.
+- **Severity prioritization:** combines rule-based and LLM severity assessments, prioritizing the highest severity.
+- **Probable cause analysis:** generates potential explanations for reported incidents.
+- **Recommended actions:** provides troubleshooting suggestions based on rules and LLM analysis.
+- **Fallback handling:** returns rule-based results when LLM analysis fails.
+- **REST API:** exposes endpoints for incident creation, retrieval, and listing.
+- **MongoDB persistence:** stores incidents and analysis results in MongoDB Atlas.
+- **Web dashboard:** provides a user interface for submitting incidents and reviewing their analysis.
 - **Input validation and error handling:** handles invalid identifiers, missing incidents, and invalid pagination parameters.
-- **Automated tests:** tests the analysis engine, service logic, and API behavior.
+- **Automated tests:** validates analyzer behavior, service logic, database repository operations, and API endpoints.
 
 ## Tech Stack
 
 - **Language:** Python
 - **API framework:** FastAPI
+- **LLM integration:** OpenAI API
 - **Database:** MongoDB Atlas
 - **Database driver:** PyMongo
-- **Testing:** pytest
+- **Frontend:** HTML, CSS, JavaScript
+- **Testing:** pytest, HTTPX
 - **API documentation:** Swagger UI / OpenAPI
 
 ## Architecture
 
-The application follows a layered structure that separates incident analysis, business logic, API handling, and database access.
+The application follows a layered architecture that separates HTTP handling, business logic, incident analysis, and database access.
 
 ```text
-Client
-  |
-  v
-FastAPI (src/api.py)
-  |
-  v
-Incident Service
-(src/services/incident_service.py)
-  |
-  +----> Rule-Based Analyzer
-  |      (src/analyzer.py)
-  |
-  v
-Incident Repository
-(src/repositories/incident_repository.py)
-  |
-  v
-MongoDB Atlas
+                    User
+                     |
+                     v
+              Web Dashboard
+                     |
+                     v
+               FastAPI API
+                (src/api.py)
+                     |
+                     v
+              Incident Service
+                     |
+                     v
+             Hybrid Analyzer
+                     |
+              +------+------+
+              |             |
+              v             v
+       Rule-Based Engine   OpenAI LLM
+              |             |
+              +------+------+
+                     |
+                     v
+            Combined Analysis
+                     |
+                     v
+           Incident Repository
+                     |
+                     v
+               MongoDB Atlas
 ```
 
 ### Main Components
 
-- **Analyzer:** evaluates incidents against predefined rules and produces classifications, severity levels, probable causes, and recommended actions.
-- **Service layer:** coordinates incident processing, invokes the analyzer, and prepares data for persistence and retrieval.
-- **API layer:** exposes HTTP endpoints and validates request parameters.
+- **API layer:** exposes HTTP endpoints and serves the dashboard.
+- **Service layer:** coordinates incident processing, analysis, and persistence.
+- **Rule-based analyzer:** evaluates incidents against predefined detection rules.
+- **LLM analyzer:** generates contextual incident classifications, probable causes, and troubleshooting recommendations.
+- **Hybrid analyzer:** combines rule-based and LLM results, prioritizes severity, and falls back to rule-based analysis if the LLM fails.
 - **Repository layer:** handles database operations.
-- **MongoDB Atlas:** persists incident data and analysis results.
+- **MongoDB Atlas:** persists incident records and their analysis results.
+- **Frontend dashboard:** allows users to submit incidents and inspect their results.
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/` | Returns a welcome message. |
-| `POST` | `/incidents` | Analyzes an incident and stores the result. |
-| `GET` | `/incidents/{incident_id}` | Retrieves an incident by ID. |
-| `GET` | `/incidents` | Lists stored incidents with pagination. |
+| `GET` | `/` | Serves the web dashboard. |
+| `POST` | `/incidents` | Analyzes and stores a new incident. |
+| `GET` | `/incidents` | Lists incidents with pagination. |
+| `GET` | `/incidents/{incident_id}` | Retrieves a specific incident by ID. |
 
 ### Pagination
 
-The incident listing endpoint supports:
+The incident listing endpoint supports the following query parameters:
 
 - `limit`: maximum number of incidents to return (1–100, default: 10).
 - `skip`: number of incidents to skip (default: 0).
@@ -114,25 +104,23 @@ GET /incidents?limit=10&skip=0
 
 When the application is running, interactive API documentation is available at:
 
-```text
-http://127.0.0.1:8000/docs
-```
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python
+- Python 3.12 or a compatible Python version.
 - pip
-- A MongoDB Atlas account and database
-- A MongoDB connection string configured for the application
+- A MongoDB Atlas database.
+- An OpenAI API key.
 
 ### Installation
 
 Clone the repository:
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone <https://github.com/nachoguarino/ai-incident-manager>
 cd ai-incident-manager
 ```
 
@@ -151,17 +139,38 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Configure the MongoDB connection using the environment variable expected by the application's database configuration. Do not commit credentials or connection strings to the repository.
+### Environment Configuration
 
-### Run the API
+Create a `.env` file in the project root directory:
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+OPENAI_API_KEY=your_openai_api_key
+```
+
+Replace the placeholder values with your own credentials.
+
+**Security:** Never commit your `.env` file or expose API keys and database credentials in source code.
+
+### Run the Application
+
+Start the development server:
 
 ```bash
 python -m uvicorn src.api:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` to explore the API.
+Open the following URL to access the dashboard:
+
+[http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+Explore the API through Swagger UI:
+
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ### Run Tests
+
+Execute the automated test suite:
 
 ```bash
 python -m pytest
@@ -169,22 +178,22 @@ python -m pytest
 
 ## Roadmap
 
-- [ ] LLM-powered incident diagnosis
-- [ ] Retrieval-Augmented Generation (RAG) for contextual troubleshooting
-- [ ] Asynchronous incident processing
-- [ ] Docker containerization
-- [ ] Observability, structured logging, and metrics
-- [ ] Expanded API testing and integration testing
-- [ ] Improved filtering and sorting for incident queries
+- [ ] Improve incident severity assessment using explicit impact criteria.
+- [ ] Add structured output validation for LLM responses.
+- [ ] Distinguish rule-based findings from LLM-generated hypotheses in the dashboard.
+- [ ] Add configurable timeouts and retry policies for LLM requests.
+- [ ] Add Docker support for easier deployment.
+- [ ] Improve observability with structured logs and operational metrics.
+- [ ] Explore Retrieval-Augmented Generation (RAG) for contextual troubleshooting.
 
 ## Project Goals
 
-This project explores backend engineering practices for incident management systems, including API design, layered architecture, database persistence, rule-based analysis, input validation, and automated testing.
+This project explores practical backend engineering concepts through an incident management use case, including REST API design, layered architecture, database persistence, deterministic rule engines, LLM integration, error handling, and automated testing.
 
-Future iterations will investigate how large language models can complement deterministic rules to provide more contextual incident diagnosis and troubleshooting recommendations.
+The goal is to demonstrate how traditional backend logic and LLMs can work together to support software incident investigation.
 
 ## Status
 
-The core rule-based analyzer, REST API, MongoDB persistence, incident retrieval, paginated listing, and automated tests are implemented.
+The core application is implemented, including the hybrid analysis engine, FastAPI endpoints, MongoDB persistence, web dashboard, and automated tests.
 
-This project is under active development.
+The project is currently focused on improving reliability, documentation, and deployment readiness.

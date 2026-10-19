@@ -21,8 +21,22 @@ SEVERITY_PRIORITY = {
     "critical": 4
 }
 
+def run_rules(incident: Incident) -> list:
+    """Execute every rule and return the matching results."""
+
+    matches = []
+
+    for rule in RULES:
+        result = rule(incident)
+
+        if result is not None:
+            matches.append(result)
+
+    return matches
+
 
 def combine_actions(matches):
+    """Combine recommended actions without duplicates, preserving order."""
     actions = []
 
     for match in matches:
@@ -33,16 +47,8 @@ def combine_actions(matches):
     return actions
 
 
-def analyze_incident(incident: Incident) -> IncidentAnalysis:
-
-    matches = []
-
-    for rule in RULES:
-        result = rule(incident)
-
-        if result is not None:
-            matches.append(result)
-
+def build_rule_analysis(matches: list) -> IncidentAnalysis:
+    """Convert rule matches into the common analysis model."""
     if not matches:
         return IncidentAnalysis(
             categories=["unknown"],
@@ -50,15 +56,14 @@ def analyze_incident(incident: Incident) -> IncidentAnalysis:
             probable_causes=["Unable to determine cause"],
             recommended_actions=[
                 "Review application logs",
-                "Investigate incident manually",
-                "Cry for your system administrator"
+                "Investigate incident manually"
             ],
             matched_rules=[]
         )
 
-    categories = list({
+    categories = list(dict.fromkeys(
         match.category for match in matches
-    })
+    ))
 
     probable_causes = [
         match.probable_cause for match in matches
@@ -72,8 +77,7 @@ def analyze_incident(incident: Incident) -> IncidentAnalysis:
     ).severity
 
     matched_rules = [
-        match.rule_name
-        for match in matches
+        match.rule_name for match in matches
     ]
 
     return IncidentAnalysis(
@@ -85,3 +89,8 @@ def analyze_incident(incident: Incident) -> IncidentAnalysis:
     )
 
 
+def analyze_incident(incident: Incident) -> IncidentAnalysis:
+    """Analyze an incident using the existing rule engine."""
+
+    matches = run_rules(incident)
+    return build_rule_analysis(matches)
